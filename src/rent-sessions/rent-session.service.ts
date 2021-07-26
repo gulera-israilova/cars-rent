@@ -18,4 +18,10 @@ export class RentSessionService {
     async create(createRentSessionDto): Promise<RentSessionEntity[]> {
         return this.rentSessionRepository.save(createRentSessionDto)
     }
+
+    async destroy(id: string): Promise<void> {
+        await this.rentSessionRepository.delete(id);
+    }
+
+
 }

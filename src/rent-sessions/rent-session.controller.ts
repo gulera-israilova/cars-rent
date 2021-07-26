@@ -1,4 +1,4 @@
-import {Body, Controller, Get, Post} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import {RentSessionService} from "./rent-session.service";
 import {CreateRentSessionDto} from "./dto/create-rent-session.dto";
 
@@ -16,5 +16,11 @@ export class RentSessionController {
     index() {
         return this.rentSessionService.index()
     }
+
+    @Delete(':id')
+    destroy(@Param('id') id: string) {
+        return this.rentSessionService.destroy(id)
+    }
+
 }
 

@@ -20,6 +20,7 @@ export class RentSessionEntity {
     @Column('date')
     endedAt: string;
 
-    @ManyToOne(() => CarEntity, car => car.rentSessions)
-    car: CarEntity;
+    @ManyToOne(() => CarEntity, carEntity => carEntity.rentSessions)
+    @JoinColumn()
+    carEntity: CarEntity;
 }
