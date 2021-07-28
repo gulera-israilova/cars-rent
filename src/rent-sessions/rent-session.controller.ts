@@ -17,6 +17,11 @@ export class RentSessionController {
         return this.rentSessionService.index()
     }
 
+    @Get('active')
+    getActiveRentSession() {
+        return this.rentSessionService.getActiveRentSession();
+    }
+
     @Delete(':id')
     destroy(@Param('id') id: string) {
         return this.rentSessionService.destroy(id)
