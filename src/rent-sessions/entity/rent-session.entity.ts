@@ -22,5 +22,5 @@ export class RentSessionEntity {
 
     @ManyToOne(() => CarEntity, carEntity => carEntity.rentSessions)
     @JoinColumn()
-    carEntity: CarEntity;
+    car: CarEntity;
 }

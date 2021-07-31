@@ -19,6 +19,6 @@ export class CarEntity {
     @Column()
     VIN: string;
 
-    @OneToMany(() => RentSessionEntity, rent => rent.carEntity)
+    @OneToMany(() => RentSessionEntity, rent => rent.car)
     rentSessions: RentSessionEntity[];
 }
