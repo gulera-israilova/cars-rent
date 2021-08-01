@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { RentSessionEntity } from './entity/rent-session.entity';
@@ -26,22 +26,26 @@ export class RentSessionService {
     });
   }
 
-  async rentSessionLimit(startedAt, endedAt): Promise<boolean> {
-    return startedAt.getTime() + 2.592e+9 > endedAt.getTime()
+  async rentSessionLimit(startedAt, endedAt) {
+    let diff = Math.abs(startedAt.valueOf() - endedAt.valueOf());
+    return Math.ceil(diff / (1000 * 3600 * 24));
+    // return diffInDays;
   }
 
-  async create(createRentSessionDto: CreateRentSessionDto): Promise<RentSessionEntity> {
-    let start = new Date(createRentSessionDto.startedAt);
-    let end = new Date(createRentSessionDto.endedAt);
-    if (!(await this.rentSessionLimit(start,end)))
-    {
-      throw new HttpException("You can't book a car for more than a thirty days.", 500);
-
-    } else
-    {
-      return await this.rentSessionRepository.save(createRentSessionDto)
-    }
-
+  async create(createRentSessionDto: CreateRentSessionDto):Promise<RentSessionEntity> {
+    let start = Date.parse(createRentSessionDto.startedAt);
+    let end = Date.parse(createRentSessionDto.endedAt);
+    console.log(start, end);
+    console.log(this.rentSessionLimit(start, end));
+    //console.log(this.rentSessionLimit(start, end));
+    // if (!(await this.rentSessionLimit(createRentSessionDto.startedAt, createRentSessionDto.endedAt)))
+    // {
+    //   throw new HttpException("You can't book a car for more than a thirty days.", 500);
+    //
+    // } else
+    // {
+    return await this.rentSessionRepository.save(createRentSessionDto)
+    // }
   }
 
   async destroy(id: string): Promise<void> {

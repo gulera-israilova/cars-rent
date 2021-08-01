@@ -4,11 +4,10 @@ export enum Tariff {
     THIRD = 390,
 }
 
-let dailyPrice = [
-  first: 270,
-
-]
-export function get
+// let dailyPrice = [
+//   first: 270,
+//
+// ]
 export function getTariff($distance) {
    if (0 < $distance && $distance <= 350) {
        return Tariff.FIRST

@@ -14,13 +14,13 @@ export class RentSessionEntity {
     })
     tariff: Tariff;
 
-    @Column('date')
-    startedAt: string;
+    @Column()
+    startedAt: Date;
 
-    @Column('date')
-    endedAt: string;
+    @Column()
+    endedAt: Date;
 
-    @ManyToOne(() => CarEntity, carEntity => carEntity.rentSessions)
+    @ManyToOne(() => CarEntity, car => car.rentSessions)
     @JoinColumn()
     car: CarEntity;
 }
