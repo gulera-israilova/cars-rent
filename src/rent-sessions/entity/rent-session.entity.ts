@@ -14,10 +14,10 @@ export class RentSessionEntity {
     })
     tariff: Tariff;
 
-    @Column()
+    @Column({type: 'timestamp'})
     startedAt: Date;
 
-    @Column()
+    @Column({type: 'timestamp'})
     endedAt: Date;
 
     @ManyToOne(() => CarEntity, car => car.rentSessions)
