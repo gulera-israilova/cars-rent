@@ -27,15 +27,13 @@ export class RentSessionService {
         });
     }
 
-    async rentSessionLimit(startedAt:Date, endedAt:Date):Promise<boolean> {
-
+     async rentSessionLimit(startedAt:Date, endedAt:Date):Promise<boolean> {
         let diff = Math.abs(startedAt.valueOf() - endedAt.valueOf());
         return Math.ceil(diff / (1000 * 3600 * 24))<=30;
-
      }
-     async isWeekend(date:Date):Promise<boolean>{
+
+     async isWeekend(date:Date):Promise<boolean> {
         let day = date.getDay()
-         console.log(day + "day of week");
         return (day == 6 || day == 0) //If it's true then this is a day off
      }
 
