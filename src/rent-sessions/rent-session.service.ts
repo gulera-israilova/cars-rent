@@ -1,6 +1,6 @@
 import {HttpException, Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
-import { LessThanOrEqual, MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
+import { Equal, LessThanOrEqual, MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
 import {RentSessionEntity} from './entity/rent-session.entity';
 import {CreateRentSessionDto} from './dto/create-rent-session.dto';
 
@@ -36,11 +36,22 @@ export class RentSessionService {
         let day = date.getDay()
         return (day == 6 || day == 0) //If it's true then this is a day off
      }
-
+   //   async carBook(date: Date): Promise<boolean> {
+   //    let newBookDate = Math.ceil(date.valueOf() / (1000 * 3600 * 24))-3
+   //
+   //   const orders = await this.rentSessionRepository.find({
+   //    where: {
+   //      endedAt: LessThanOrEqual(newBookDate)
+   //    }
+   //  })
+   //  return orders.length > 0;
+   // }
 
     async create(createRentSessionDto: CreateRentSessionDto):Promise<RentSessionEntity> {
         let start = new Date(createRentSessionDto.startedAt)
         let end = new Date(createRentSessionDto.endedAt)
+      console.log(createRentSessionDto.price=300);
+      console.log(createRentSessionDto);
 
         if (!(await  this.rentSessionLimit(start,end)))
         {
@@ -49,7 +60,12 @@ export class RentSessionService {
         } else if (await this.isWeekend(start) || await this.isWeekend(end))
         {
             throw new HttpException("Weekend, cannot be booked", 500);
-        } else  return await this.rentSessionRepository.save(createRentSessionDto);
+        }
+        // else if (!(await this.carBook(start))
+        // {
+        //   throw new HttpException("This car is not available.", 500);
+        // }
+          else return await this.rentSessionRepository.save(createRentSessionDto);
 
       }
 

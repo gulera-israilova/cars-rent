@@ -23,4 +23,7 @@ export class RentSessionEntity {
     @ManyToOne(() => CarEntity, car => car.rentSessions)
     @JoinColumn()
     car: CarEntity;
-}
+
+    @JoinColumn()
+    price: Number;
+   }
