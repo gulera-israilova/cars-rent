@@ -20,7 +20,12 @@ export class RentSessionEntity {
     @Column({type: 'timestamptz'})
     endedAt: Date;
 
-    @ManyToOne(() => CarEntity, car => car.rentSessions)
+    @ManyToOne(
+        () => CarEntity,
+        car => car.rentSessions,
+        {
+            eager: true
+        })
     @JoinColumn()
     car: CarEntity;
 
