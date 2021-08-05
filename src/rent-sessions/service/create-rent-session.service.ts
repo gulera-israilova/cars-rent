@@ -26,11 +26,11 @@ export class CreateRentSessionService {
             }
         })
     }
-
-    private async rentSessionLimitExceeded(startedAt: Date, endedAt: Date): Promise<boolean> {
+    private async rentSessionInDays(startedAt: Date, endedAt: Date): Promise<number> {
         let diff = Math.abs(startedAt.valueOf() - endedAt.valueOf());
-        return Math.ceil(diff / (1000 * 3600 * 24)) > 30;
+        return Math.ceil(diff / (1000 * 3600 * 24));
     }
+
 
     private async isWeekend(date: Date): Promise<boolean> {
         let day = date.getDay()
@@ -53,8 +53,9 @@ export class CreateRentSessionService {
     async execute(createRentSessionDto: CreateRentSessionDto) {
         let start = new Date(createRentSessionDto.startedAt)
         let end = new Date(createRentSessionDto.endedAt)
+        let numberOfRentDays = await this.rentSessionInDays(start,end)
 
-        if (await this.rentSessionLimitExceeded(start, end)) {
+        if (numberOfRentDays > 30) {
             throw new HttpException("Car rental period exceeded (max = 30 days)", HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
@@ -74,6 +75,21 @@ export class CreateRentSessionService {
         let checkBookedByEnd = await this.getRentSessionBy(createRentSessionDto.car, new Date(createRentSessionDto.endedAt))
         if (checkBookedByEnd) {
             throw new HttpException(`Already have booked from ${checkBookedByEnd.startedAt} to ${checkBookedByEnd.endedAt}`, HttpStatus.UNPROCESSABLE_ENTITY)
+        }
+
+        if(numberOfRentDays >= 3 && numberOfRentDays <= 5){
+            createRentSessionDto.price = numberOfRentDays*createRentSessionDto.tariff*0.95
+            createRentSessionDto.kilometrage = numberOfRentDays*createRentSessionDto.kilometrage
+        }
+
+        if(numberOfRentDays >= 6 && numberOfRentDays <= 14){
+            createRentSessionDto.price = numberOfRentDays * createRentSessionDto.tariff * 0.9
+            createRentSessionDto.kilometrage = numberOfRentDays * createRentSessionDto.kilometrage
+        }
+
+        if(numberOfRentDays >= 15 && numberOfRentDays <= 30){
+            createRentSessionDto.price = numberOfRentDays*createRentSessionDto.tariff*0.85
+            createRentSessionDto.kilometrage = numberOfRentDays*createRentSessionDto.kilometrage
         }
 
         return await this.rentSessionRepository.save(createRentSessionDto);

@@ -14,10 +14,10 @@ export class RentSessionEntity {
     })
     tariff: Tariff;
 
-    @Column({type: 'timestamptz'})
+    @Column()
     startedAt: Date;
 
-    @Column({type: 'timestamptz'})
+    @Column()
     endedAt: Date;
 
     @ManyToOne(
@@ -31,4 +31,7 @@ export class RentSessionEntity {
 
     @JoinColumn()
     price: Number;
+
+    @JoinColumn()
+    kilometrage: Number;
 }
