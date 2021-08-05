@@ -6,7 +6,9 @@ import {CarEntity} from "./entity/car.entity";
 
 @Module({
     imports: [TypeOrmModule.forFeature([CarEntity])],
-    providers: [CarService],
+    providers: [
+        CarService,
+    ],
     controllers: [CarController],
 })
 
