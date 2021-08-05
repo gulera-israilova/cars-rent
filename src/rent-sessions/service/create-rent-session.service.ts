@@ -53,18 +53,6 @@ export class CreateRentSessionService {
             });
     }
 
-    private async isNotBookedYet(createRentSessionDto: CreateRentSessionDto) {
-        await getRepository(RentSessionEntity)
-            .findOne({
-                // order: {
-                //     endedAt: 'DESC',
-                // },
-                where: {
-                    endedAt: LessThanOrEqual(createRentSessionDto.startedAt)
-                }
-            });
-    }
-
     async execute(createRentSessionDto: CreateRentSessionDto) {
         let start = new Date(createRentSessionDto.startedAt)
         let end = new Date(createRentSessionDto.endedAt)
