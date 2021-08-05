@@ -1,6 +1,6 @@
 import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
-import {getRepository, LessThan, LessThanOrEqual, MoreThanOrEqual, Repository} from 'typeorm';
+import {Between, getRepository, LessThanOrEqual, MoreThanOrEqual, Repository} from 'typeorm';
 import {RentSessionEntity} from '../entity/rent-session.entity';
 import {CreateRentSessionDto} from '../dto/create-rent-session.dto';
 import {CarEntity} from "../../cars/entity/car.entity";
@@ -39,28 +39,20 @@ export class CreateRentSessionService {
 
     private async isThreeDaysPassed(createRentSessionDto: CreateRentSessionDto) {
         const subDays = require('date-fns/subDays')
-        subDays(new Date(), 3)
+        let startedAt = new Date(createRentSessionDto.startedAt)
 
         return await getRepository(RentSessionEntity)
             .findOne({
-                order: {
-                    endedAt: 'DESC',
-                },
                 where: {
                     car: createRentSessionDto.car,
-                    endedAt: LessThan(subDays(new Date(), 3))
-                }
+                    endedAt: Between(subDays(startedAt, 3), startedAt)
+                },
             });
     }
 
     async execute(createRentSessionDto: CreateRentSessionDto) {
         let start = new Date(createRentSessionDto.startedAt)
         let end = new Date(createRentSessionDto.endedAt)
-
-        let activeRentSession = await this.getRentSessionBy(createRentSessionDto.car, new Date());
-        if (activeRentSession) {
-            throw new HttpException(`Car already booked until ${activeRentSession.endedAt}`, HttpStatus.UNPROCESSABLE_ENTITY)
-        }
 
         if (await this.rentSessionLimitExceeded(start, end)) {
             throw new HttpException("Car rental period exceeded (max = 30 days)", HttpStatus.UNPROCESSABLE_ENTITY);
