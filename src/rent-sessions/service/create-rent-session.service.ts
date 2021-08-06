@@ -4,7 +4,7 @@ import {Between, getRepository, LessThanOrEqual, MoreThanOrEqual, Repository} fr
 import {RentSessionEntity} from '../entity/rent-session.entity';
 import {CreateRentSessionDto} from '../dto/create-rent-session.dto';
 import {CarEntity} from "../../cars/entity/car.entity";
-
+import {} from 'date-fns/subDays'
 
 @Injectable()
 export class CreateRentSessionService {
@@ -41,8 +41,7 @@ export class CreateRentSessionService {
         const subDays = require('date-fns/subDays')
         let startedAt = new Date(createRentSessionDto.startedAt)
 
-        return await getRepository(RentSessionEntity)
-            .findOne({
+        return await this.rentSessionRepository.findOne({
                 where: {
                     car: createRentSessionDto.car,
                     endedAt: Between(subDays(startedAt, 3), startedAt)
@@ -56,25 +55,34 @@ export class CreateRentSessionService {
         let numberOfRentDays = await this.rentSessionInDays(start,end)
 
         if (numberOfRentDays > 30) {
-            throw new HttpException("Car rental period exceeded (max = 30 days)", HttpStatus.UNPROCESSABLE_ENTITY);
+            throw new HttpException("Car rental period exceeded (max = 30 days)", HttpStatus.BAD_REQUEST);
         }
 
         if (await this.isWeekend(start)) {
-            throw new HttpException("Booking not available due to start date falls on weekend", HttpStatus.UNPROCESSABLE_ENTITY);
+            throw new HttpException("Booking not available due to start date falls on weekend", HttpStatus.BAD_REQUEST);
+        }
+
+        if (await this.isWeekend(end)) {
+            throw new HttpException("Booking not available due to end date falls on weekend", HttpStatus.BAD_REQUEST);
         }
 
         if (await this.isThreeDaysPassed(createRentSessionDto)) {
-            throw new HttpException("Three days have not passed since the last rent session", HttpStatus.UNPROCESSABLE_ENTITY)
+            throw new HttpException("Three days have not passed since the last rent session", HttpStatus.BAD_REQUEST)
         }
 
         let checkBookedByStart = await this.getRentSessionBy(createRentSessionDto.car, new Date(createRentSessionDto.startedAt))
         if (checkBookedByStart) {
-            throw new HttpException(`Already have booked from ${checkBookedByStart.startedAt} to ${checkBookedByStart.endedAt}`, HttpStatus.UNPROCESSABLE_ENTITY)
+            throw new HttpException(`Already have booked from ${checkBookedByStart.startedAt} to ${checkBookedByStart.endedAt}`, HttpStatus.BAD_REQUEST)
         }
 
         let checkBookedByEnd = await this.getRentSessionBy(createRentSessionDto.car, new Date(createRentSessionDto.endedAt))
         if (checkBookedByEnd) {
-            throw new HttpException(`Already have booked from ${checkBookedByEnd.startedAt} to ${checkBookedByEnd.endedAt}`, HttpStatus.UNPROCESSABLE_ENTITY)
+            throw new HttpException(`Already have booked from ${checkBookedByEnd.startedAt} to ${checkBookedByEnd.endedAt}`, HttpStatus.BAD_REQUEST)
+        }
+
+        if(numberOfRentDays >= 0 && numberOfRentDays <= 2){
+            createRentSessionDto.price = numberOfRentDays*createRentSessionDto.tariff
+            createRentSessionDto.kilometrage = numberOfRentDays*createRentSessionDto.kilometrage
         }
 
         if(numberOfRentDays >= 3 && numberOfRentDays <= 5){
@@ -95,3 +103,13 @@ export class CreateRentSessionService {
         return await this.rentSessionRepository.save(createRentSessionDto);
     }
 }
+
+// enum 1-первый тариф и так далее, проверка есть ли тариф
+// модель тарифа
+// все заказы за 30 дней
+//все заказы разделить по машинам и для каждой машины
+// фит - все заказы фит за 30 дней, складываем все километры делим на 30
+// 5. 10-3=7
+
+
+
