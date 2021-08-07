@@ -1,10 +1,12 @@
 import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
-import {Between, getRepository, LessThanOrEqual, MoreThanOrEqual, Repository} from 'typeorm';
+import {LessThanOrEqual, MoreThanOrEqual, Repository} from 'typeorm';
 import {RentSessionEntity} from '../entity/rent-session.entity';
 import {CreateRentSessionDto} from '../dto/create-rent-session.dto';
 import {CarEntity} from "../../cars/entity/car.entity";
-import {} from 'date-fns/subDays'
+import {subDays} from "date-fns";
+import {differenceInDays} from "date-fns";
+import {calculateAmount, calculateKilometrage} from "../enum/tarrif.enum";
 
 @Injectable()
 export class CreateRentSessionService {
@@ -26,79 +28,51 @@ export class CreateRentSessionService {
             }
         })
     }
-    private async rentSessionInDays(startedAt: Date, endedAt: Date): Promise<number> {
-        let diff = Math.abs(startedAt.valueOf() - endedAt.valueOf());
-        return Math.ceil(diff / (1000 * 3600 * 24));
-    }
 
-
-    private async isWeekend(date: Date): Promise<boolean> {
+    private static async isWeekend(date: Date): Promise<boolean> {
         let day = date.getDay()
         return (day == 6 || day == 0) //If it's true then this is a day off
     }
 
-    private async isThreeDaysPassed(createRentSessionDto: CreateRentSessionDto) {
-        const subDays = require('date-fns/subDays')
-        let startedAt = new Date(createRentSessionDto.startedAt)
-
-        return await this.rentSessionRepository.findOne({
-                where: {
-                    car: createRentSessionDto.car,
-                    endedAt: Between(subDays(startedAt, 3), startedAt)
-                },
-            });
-    }
-
     async execute(createRentSessionDto: CreateRentSessionDto) {
-        let start = new Date(createRentSessionDto.startedAt)
-        let end = new Date(createRentSessionDto.endedAt)
-        let numberOfRentDays = await this.rentSessionInDays(start,end)
+        let start = new Date(createRentSessionDto.startedAt);
+        let end = new Date(createRentSessionDto.endedAt);
+        let numberOfRentDays = differenceInDays(end, start);
+
+        if (differenceInDays(end, new Date()) < numberOfRentDays) {
+            throw new HttpException("Cannot be booked in the past", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        if (await CreateRentSessionService.isWeekend(start)) {
+            throw new HttpException("Booking not available due to start date falls on weekend", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        if (await CreateRentSessionService.isWeekend(end)) {
+            throw new HttpException("Booking not available due to end date falls on weekend", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
 
         if (numberOfRentDays > 30) {
-            throw new HttpException("Car rental period exceeded (max = 30 days)", HttpStatus.BAD_REQUEST);
+            throw new HttpException("Car rental period exceeded (max = 30 days)", HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
-        if (await this.isWeekend(start)) {
-            throw new HttpException("Booking not available due to start date falls on weekend", HttpStatus.BAD_REQUEST);
-        }
-
-        if (await this.isWeekend(end)) {
-            throw new HttpException("Booking not available due to end date falls on weekend", HttpStatus.BAD_REQUEST);
-        }
-
-        if (await this.isThreeDaysPassed(createRentSessionDto)) {
-            throw new HttpException("Three days have not passed since the last rent session", HttpStatus.BAD_REQUEST)
+        let threeDaysBeforeSessionStart = subDays(new Date(createRentSessionDto.startedAt), 3);
+        let lastCarRentSession = await this.getRentSessionBy(createRentSessionDto.car, threeDaysBeforeSessionStart);
+        if (lastCarRentSession) {
+            throw new HttpException(`Three days have not passed since the last rent session (was ended at ${lastCarRentSession.endedAt})`, HttpStatus.UNPROCESSABLE_ENTITY)
         }
 
         let checkBookedByStart = await this.getRentSessionBy(createRentSessionDto.car, new Date(createRentSessionDto.startedAt))
         if (checkBookedByStart) {
-            throw new HttpException(`Already have booked from ${checkBookedByStart.startedAt} to ${checkBookedByStart.endedAt}`, HttpStatus.BAD_REQUEST)
+            throw new HttpException(`Already have booked from ${checkBookedByStart.startedAt} to ${checkBookedByStart.endedAt}`, HttpStatus.UNPROCESSABLE_ENTITY)
         }
 
         let checkBookedByEnd = await this.getRentSessionBy(createRentSessionDto.car, new Date(createRentSessionDto.endedAt))
         if (checkBookedByEnd) {
-            throw new HttpException(`Already have booked from ${checkBookedByEnd.startedAt} to ${checkBookedByEnd.endedAt}`, HttpStatus.BAD_REQUEST)
+            throw new HttpException(`Already have booked from ${checkBookedByEnd.startedAt} to ${checkBookedByEnd.endedAt}`, HttpStatus.UNPROCESSABLE_ENTITY)
         }
 
-        if(numberOfRentDays >= 0 && numberOfRentDays <= 2){
-            createRentSessionDto.price = numberOfRentDays*createRentSessionDto.tariff
-            createRentSessionDto.kilometrage = numberOfRentDays*createRentSessionDto.kilometrage
-        }
-
-        if(numberOfRentDays >= 3 && numberOfRentDays <= 5){
-            createRentSessionDto.price = numberOfRentDays*createRentSessionDto.tariff*0.95
-            createRentSessionDto.kilometrage = numberOfRentDays*createRentSessionDto.kilometrage
-        }
-
-        if(numberOfRentDays >= 6 && numberOfRentDays <= 14){
-            createRentSessionDto.price = numberOfRentDays * createRentSessionDto.tariff * 0.9
-            createRentSessionDto.kilometrage = numberOfRentDays * createRentSessionDto.kilometrage
-        }
-
-        if(numberOfRentDays >= 15 && numberOfRentDays <= 30){
-            createRentSessionDto.price = numberOfRentDays*createRentSessionDto.tariff*0.85
-            createRentSessionDto.kilometrage = numberOfRentDays*createRentSessionDto.kilometrage
-        }
+        createRentSessionDto.amount = calculateAmount(numberOfRentDays, createRentSessionDto.tariff)
+        createRentSessionDto.kilometrage = calculateKilometrage(numberOfRentDays, createRentSessionDto.tariff)
 
         return await this.rentSessionRepository.save(createRentSessionDto);
     }

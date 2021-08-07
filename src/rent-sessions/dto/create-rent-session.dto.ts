@@ -1,24 +1,27 @@
 import {CarEntity} from "../../cars/entity/car.entity";
-import { IsDate, IsDateString, IsEmpty, IsNumber, IsString } from 'class-validator';
-
+import {IsDate, IsEmpty, IsEnum, IsNumber} from 'class-validator';
+import {Tariff} from "../enum/tarrif.enum";
+import {Type} from "class-transformer";
 
 
 export class CreateRentSessionDto {
-    @IsNumber()
-    readonly tariff: number
+    @IsEnum(Tariff)
+    readonly tariff: Tariff
 
-    @IsDateString()
+    @IsDate()
+    @Type(() => Date)
     readonly startedAt: Date
 
-    @IsDateString()
+    @IsDate()
+    @Type(() => Date)
     readonly endedAt: Date
 
     @IsNumber()
     readonly car: CarEntity
 
     @IsEmpty()
-    price:number
+    amount: number
 
-    @IsNumber()
-    kilometrage:number
+    @IsEmpty()
+    kilometrage: number
 }

@@ -10,7 +10,7 @@ export class RentSessionEntity {
     @Column({
         type: "enum",
         enum: Tariff,
-        default: Tariff.FIRST
+        default: Tariff.TRIP
     })
     tariff: Tariff;
 
