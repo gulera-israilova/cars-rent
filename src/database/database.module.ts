@@ -5,6 +5,7 @@ import {RentSessionEntity} from "../rent-sessions/entity/rent-session.entity";
 import {CarModule} from "../cars/car.module";
 import {RentSessionModule} from "../rent-sessions/rent-session.module";
 import { ConfigModule } from "@nestjs/config";
+import { UserEntity } from '../auth/entity/user.entity';
 
 
 @Module({
@@ -22,7 +23,7 @@ import { ConfigModule } from "@nestjs/config";
             "database": process.env.DB_DATABASE,
             "autoLoadEntities": true,
             "synchronize": true,
-            "entities": [CarEntity, RentSessionEntity]
+            "entities": [CarEntity, RentSessionEntity,UserEntity]
         }),
     ],
     controllers: [],

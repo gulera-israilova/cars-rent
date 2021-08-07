@@ -6,10 +6,11 @@ import {CarModule} from './cars/car.module';
 
 import {Connection} from 'typeorm';
 import {RentSessionModule} from './rent-sessions/rent-session.module';
+import { AuthModule } from './auth/auth.module';
 
 
 @Module({
-  imports: [ DatabaseModule, CarModule, RentSessionModule],
+  imports: [ DatabaseModule, CarModule, RentSessionModule, AuthModule],
   controllers: [AppController ],
   providers: [AppService],
 })
