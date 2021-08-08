@@ -1,6 +1,7 @@
 import {CarEntity} from 'src/cars/entity/car.entity';
 import {Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from 'typeorm';
 import {Tariff} from "../enum/tarrif.enum";
+import {ValidateNested} from "class-validator";
 
 @Entity()
 export class RentSessionEntity {
@@ -20,6 +21,7 @@ export class RentSessionEntity {
     @Column()
     endedAt: Date;
 
+    @ValidateNested({ each: true })
     @ManyToOne(
         () => CarEntity,
         car => car.rentSessions,

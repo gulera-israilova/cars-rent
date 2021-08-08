@@ -1,9 +1,10 @@
-import {Body, Controller, Delete, Get, Param, Post, Put} from "@nestjs/common";
+import {Body, Controller, Delete, Get, Param, Post, Put, Query} from "@nestjs/common";
 import {CreateCarDto} from "./dto/create-car.dto";
 import {CarService} from "./car.service";
 import {UpdateCarDto} from "./dto/update-car.dto";
 
 import {UpdateResult} from "typeorm";
+import {FilterCarSessionsDto} from "./dto/filter-car-sessions.dto";
 
 @Controller('cars')
 export class CarController {
@@ -13,6 +14,16 @@ export class CarController {
     @Get()
     index() {
         return this.carsService.index()
+    }
+
+    @Get('rent-sessions')
+    byAllCars(@Query() filterCarSessionsDto: FilterCarSessionsDto) {
+        return this.carsService.kilometrage(filterCarSessionsDto)
+    }
+
+    @Get(':id/kilometrage')
+    byCar(@Query() filterCarSessionsDto: FilterCarSessionsDto, @Param('id') car: number) {
+        return this.carsService.kilometrage(filterCarSessionsDto, car)
     }
 
     @Get(':id')

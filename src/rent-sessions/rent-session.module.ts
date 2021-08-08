@@ -5,9 +5,13 @@ import {CreateRentSessionService} from "./service/create-rent-session.service";
 import {GetRentSessionListService} from "./service/get-rent-session-list.service";
 import {RentSessionController} from "./rent-session.controller";
 import {DestroyRentSessionService} from "./service/destroy-rent-session.service";
+import {CarEntity} from "../cars/entity/car.entity";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([RentSessionEntity])],
+    imports: [TypeOrmModule.forFeature([
+        RentSessionEntity,
+        CarEntity,
+    ])],
     providers: [
         CreateRentSessionService,
         GetRentSessionListService,

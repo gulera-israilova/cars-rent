@@ -1,5 +1,5 @@
 import {CarEntity} from "../../cars/entity/car.entity";
-import {IsDate, IsEmpty, IsEnum, IsNumber} from 'class-validator';
+import {IsDate, IsEmpty, IsEnum, IsInstance, IsNumber} from 'class-validator';
 import {Tariff} from "../enum/tarrif.enum";
 import {Type} from "class-transformer";
 

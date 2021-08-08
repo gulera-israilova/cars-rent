@@ -25,32 +25,19 @@ export class AuthService { constructor(
     }
   })
  }
-  async comparePassword(userDto): Promise<UserEntity>{
-    return this.userRepository.findOne({
-      where:{
-        password:bcrypt.hash(userDto.password,12)
-      }
-    })
-  }
 
 
  async login(userDto){
   const user = await this.findUser(userDto)
-  const compare = await this.comparePassword(userDto)
 
   if(!user){
     throw new BadRequestException("No such user")
   }
-  if(!compare){
+  if(!(bcrypt.compare(userDto.password,user.password))){
     throw new BadRequestException("Passwords do not match")
   }
 
   return await this.jwtService.signAsync({id:user.id})
 }
-
-
-
-
-
 }
 
