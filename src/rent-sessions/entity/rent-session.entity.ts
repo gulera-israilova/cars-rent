@@ -31,9 +31,9 @@ export class RentSessionEntity {
     @JoinColumn()
     car: CarEntity;
 
-    @JoinColumn()
-    price: Number;
+    @Column()
+    amount: number;
 
-    @JoinColumn()
-    kilometrage: Number;
+    @Column()
+    kilometrage: number;
 }

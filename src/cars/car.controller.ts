@@ -5,6 +5,7 @@ import {UpdateCarDto} from "./dto/update-car.dto";
 
 import {UpdateResult} from "typeorm";
 import {FilterCarSessionsDto} from "./dto/filter-car-sessions.dto";
+import {CarEntity} from "./entity/car.entity";
 
 @Controller('cars')
 export class CarController {
@@ -16,14 +17,14 @@ export class CarController {
         return this.carsService.index()
     }
 
-    @Get('rent-sessions')
+    @Get('kilometrage')
     byAllCars(@Query() filterCarSessionsDto: FilterCarSessionsDto) {
-        return this.carsService.kilometrage(filterCarSessionsDto)
+        return this.carsService.carsKilometrage(filterCarSessionsDto)
     }
 
     @Get(':id/kilometrage')
-    byCar(@Query() filterCarSessionsDto: FilterCarSessionsDto, @Param('id') car: number) {
-        return this.carsService.kilometrage(filterCarSessionsDto, car)
+    byCar(@Query() filterCarSessionsDto: FilterCarSessionsDto, @Param('id') car: CarEntity) {
+        return this.carsService.carKilometrage(filterCarSessionsDto, car)
     }
 
     @Get(':id')

@@ -39,26 +39,66 @@ export class CarService {
         return this.carsRepository.update(id, cartDto)
     }
 
-    async kilometrage(filterCarSessionsDto: FilterCarSessionsDto, car?: number): Promise<Number> {
+    async carKilometrage(filterCarSessionsDto: FilterCarSessionsDto, car: CarEntity): Promise<{ car: CarEntity; kilometrage: number }> {
         let options = {
             where: {
-                startedAt: Between(filterCarSessionsDto.startedAt, filterCarSessionsDto.endedAt),
-                endedAt: Between(filterCarSessionsDto.startedAt, filterCarSessionsDto.endedAt),
+                car: car,
             },
-            orWhere: {
-                startedAt: Between(filterCarSessionsDto.startedAt, filterCarSessionsDto.endedAt),
-                endedAt: Between(filterCarSessionsDto.startedAt, filterCarSessionsDto.endedAt),
-            }
-        }
-
-        if (car) {
-            options.where['car'] = car;
+            andWhere: [
+                {
+                    startedAt: Between(filterCarSessionsDto.startedAt, filterCarSessionsDto.endedAt),
+                },
+                {
+                    endedAt: Between(filterCarSessionsDto.startedAt, filterCarSessionsDto.endedAt),
+                }
+            ]
         }
 
         let rentSessions = await this.rentSessionRepository.find(options);
         let kilometrage = 0;
         rentSessions.forEach(rentSession => {
-            let days = differenceInDays(rentSession.endedAt, rentSession.startedAt)
+            let days: number;
+            if (filterCarSessionsDto.startedAt > rentSession.startedAt) {
+                days = differenceInDays(rentSession.endedAt, filterCarSessionsDto.startedAt)
+            } else if (filterCarSessionsDto.endedAt < rentSession.endedAt) {
+                days = differenceInDays(filterCarSessionsDto.endedAt, rentSession.startedAt)
+            } else {
+                days = differenceInDays(rentSession.endedAt, rentSession.startedAt)
+            }
+
+            kilometrage += calculateKilometrage(days, rentSession.tariff)
+        })
+
+        return {
+            car: car,
+            kilometrage: kilometrage
+        }
+    }
+
+    async carsKilometrage(filterCarSessionsDto: FilterCarSessionsDto) {
+        let options = {
+            where: [
+                {
+                    startedAt: Between(filterCarSessionsDto.startedAt, filterCarSessionsDto.endedAt),
+                },
+                {
+                    endedAt: Between(filterCarSessionsDto.startedAt, filterCarSessionsDto.endedAt),
+                },
+            ],
+        }
+
+        let rentSessions = await this.rentSessionRepository.find(options);
+        let kilometrage = 0;
+        rentSessions.forEach(rentSession => {
+            let days: number;
+            if (filterCarSessionsDto.startedAt > rentSession.startedAt) {
+                days = differenceInDays(rentSession.endedAt, filterCarSessionsDto.startedAt)
+            } else if (filterCarSessionsDto.endedAt < rentSession.endedAt) {
+                days = differenceInDays(filterCarSessionsDto.endedAt, rentSession.startedAt)
+            } else {
+                days = differenceInDays(rentSession.endedAt, rentSession.startedAt)
+            }
+
             kilometrage += calculateKilometrage(days, rentSession.tariff)
         })
 
